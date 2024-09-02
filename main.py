@@ -49,4 +49,4 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     clean_btn.click(lambda: [], chatbot, chatbot)
 
 demo.title = web_title
-demo.launch(share=False, server_name='172.25.70.244')
+demo.launch(share=False, server_name='0.0.0.0')
