@@ -49,6 +49,9 @@ def chat(query, history):
             if event is not None and event == "[DONE]":
                 break
 
+            if event == "conversation.message.completed":
+                continue
+
             if event is None:
                 json_data = json.loads(decoded_line.split("data:")[-1])
                 if 'type' in json_data and json_data['type'] == 'answer':
