@@ -1,5 +1,7 @@
 import gradio as gr
 import coze
+import os
+os.environ['CURL_CA_BUNDLE'] = ''
 
 
 def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):

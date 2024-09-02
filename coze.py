@@ -2,6 +2,8 @@
 import json
 
 import requests
+import os
+os.environ['CURL_CA_BUNDLE'] = ''
 
 url = 'https://api.coze.cn/v3/chat'
 headers = {
