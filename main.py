@@ -1,6 +1,7 @@
 import gradio as gr
 import coze
 
+
 def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
     # 获取 URL 参数
     params = request.query_params
@@ -8,10 +9,11 @@ def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
 
     # 将参数信息添加到对话中
     system_message = f"鉴权信息是: {param_value}\n"
-    prj_chatbot.append((None, system_message))
+    # prj_chatbot.append((None, system_message))
     yield prj_chatbot
 
-    coze_response = coze.chat(user_in_text, prj_chatbot)
+
+    coze_response = coze.chat(system_message + user_in_text, prj_chatbot)
 
     prj_chatbot.append([user_in_text, ''])
     yield prj_chatbot
@@ -19,6 +21,7 @@ def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
     for chunk_content in coze_response:
         prj_chatbot[-1][1] = f'{prj_chatbot[-1][1]}{chunk_content}'
         yield prj_chatbot
+
 
 web_title = 'Coze API 对话'
 title_html = f'<h3 align="center">{web_title}</h3>'
