@@ -1,8 +1,15 @@
 import gradio as gr
 import coze
 
+def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
+    # 获取 URL 参数
+    params = request.query_params
+    param_value = params.get("token")
 
-def chat(user_in_text: str, prj_chatbot: list):
+    # 将参数信息添加到对话中
+    system_message = f"鉴权信息是: {param_value}\n"
+    prj_chatbot.append((None, system_message))
+    yield prj_chatbot
 
     coze_response = coze.chat(user_in_text, prj_chatbot)
 
@@ -13,7 +20,6 @@ def chat(user_in_text: str, prj_chatbot: list):
         prj_chatbot[-1][1] = f'{prj_chatbot[-1][1]}{chunk_content}'
         yield prj_chatbot
 
-
 web_title = 'Coze API 对话'
 title_html = f'<h3 align="center">{web_title}</h3>'
 
@@ -21,24 +27,23 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     gr.HTML(title_html)
     with gr.Row():
         with gr.Column():
-            chatbot = gr.Chatbot()
-            chatbot.style(height=580)
+            chatbot = gr.Chatbot()  # 移除 style 方法调用
 
             with gr.Row():
                 with gr.Column(scale=4):
-                    input_text = gr.Textbox(show_label=False, placeholder="请输入你的问题").style(container=False)
+                    input_text = gr.Textbox(show_label=False, placeholder="请输入你的问题")
                 with gr.Column(scale=1, min_width=100):
                     submit_btn = gr.Button("提交", variant="primary")
                 with gr.Column(scale=1, min_width=100):
                     clean_btn = gr.Button("清空", variant="stop")
 
-    input_text.submit(fn=chat, inputs=[input_text, chatbot], outputs=[chatbot], show_progress=True)
-    input_text.submit(fn=lambda x: '', inputs=[input_text], outputs=[input_text], show_progress=True)
+    input_text.submit(chat, [input_text, chatbot], chatbot, api_name="chat")
+    input_text.submit(lambda x: '', input_text, input_text)
 
-    submit_btn.click(fn=chat, inputs=[input_text, chatbot], outputs=[chatbot], show_progress=True)
-    submit_btn.click(fn=lambda x: '', inputs=[input_text], outputs=[input_text], show_progress=True)
+    submit_btn.click(chat, [input_text, chatbot], chatbot, api_name="chat")
+    submit_btn.click(lambda x: '', input_text, input_text)
 
-    clean_btn.click(fn=lambda x: [], inputs=[chatbot], outputs=[chatbot])
+    clean_btn.click(lambda: [], chatbot, chatbot)
 
 demo.title = web_title
-demo.queue(concurrency_count=100).launch(share=False, server_name='0.0.0.0')
+demo.launch(share=False, server_name='172.25.70.244')
