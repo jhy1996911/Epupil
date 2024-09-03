@@ -8,7 +8,7 @@ os.environ['CURL_CA_BUNDLE'] = ''
 
 url = 'https://api.coze.cn/v3/chat'
 headers = {
-    "Authorization": "Bearer pat_yi6XzJLzdPpCCpQ5Cp18rB72xVvkwnILyKqnFGJ3DxPUnK3nMAYNJgxPFprxLQCp",
+    "Authorization": "Bearer pat_eAoX45L25bTnmMwfySKro9eXH3Ru6Vs7fimeL9Jm70XujQRLMN2KxCqBOGNbnMk8",
     "Content-Type": "application/json",
     # "Accept": "*/*",
     # "Host": "api.coze.com",
@@ -17,20 +17,20 @@ headers = {
 
 data = {
     # "conversation_id": "123",
-    "bot_id": "7408901898235281427",
+    "bot_id": "7410398538913841190",
     "user_id": "111",
     "stream": True,
     "auto_save_history": True
 }
 
 
-def chat(query, history):
+def chat(query, history, conversation_id):
     # chat_history = []
     # for hist_item in history:
     #     chat_history.append({'role': 'user', 'type': 'query', 'content': hist_item[0], "content_type": "text"})
     #     chat_history.append({'role': 'assistant', 'type': 'answer', 'content': hist_item[1], "content_type": "text"})
 
-    print("用户说:", query)
+    print("用户说:", query, "conversation_id:", conversation_id)
     data['additional_messages'] = [{"role": "user", "content": query, "content_type": "text"}]
     # data['additional_messages']=data['additional_messages'].encode('utf-8')
     # data['chat_history'] = chat_history
