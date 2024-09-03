@@ -25,7 +25,7 @@ def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
         yield prj_chatbot
 
 
-web_title = 'Coze API 对话'
+web_title = '技术驱动业务，创新引领未来'
 title_html = f'<h3 align="center">{web_title}</h3>'
 
 with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
