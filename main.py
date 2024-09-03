@@ -52,4 +52,4 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
 
 demo.title = web_title
 # demo.launch(share=True, server_name='123.60.85.50')
-demo.launch(share=True, server_name='0.0.0.0')
+demo.launch(share=False, server_name='0.0.0.0')

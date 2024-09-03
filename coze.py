@@ -3,6 +3,7 @@ import json
 
 import requests
 import os
+
 os.environ['CURL_CA_BUNDLE'] = ''
 
 url = 'https://api.coze.cn/v3/chat'
@@ -42,9 +43,13 @@ def chat(query, history):
     # print(headers)
     response = requests.post(url, headers=headers, data=data_json)
 
+    conti = False
     for line in response.iter_lines():
         # print(line)
         if line:
+            if conti:
+                conti = False
+                continue
             decoded_line = line.decode('utf-8')
             print(decoded_line)
             event = extract_event_type(decoded_line)
@@ -52,6 +57,7 @@ def chat(query, history):
                 break
 
             if event == "conversation.message.completed":
+                conti = True
                 continue
 
             if event is None:
