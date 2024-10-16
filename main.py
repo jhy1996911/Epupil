@@ -15,13 +15,13 @@ def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
     # 获取 URL 参数
     params = request.query_params
     param_value = params.get("token")
-
-    # 将参数信息添加到对话中
-    system_message = f"鉴权信息是: {param_value}\n"
-    # prj_chatbot.append((None, system_message))
     yield prj_chatbot
 
-    coze_response = coze.chat(system_message + user_in_text, prj_chatbot, conversation_id)
+    system_message = f"鉴权信息是{param_value}\n\n"
+    # prj_chatbot.append((None, system_message))
+
+    coze_response = coze.chat(system_message + user_in_text, prj_chatbot,param_value)
+    # coze_response = coze.chat(user_in_text, prj_chatbot, param_value)
 
     prj_chatbot.append([user_in_text, ''])
     yield prj_chatbot
@@ -51,12 +51,7 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
                 with gr.Column(scale=1, min_width=100):
                     clean_btn = gr.Button("清空", variant="stop")
 
-    conversation_id = generate_conversation_id()
-
-
     def reset_conversation(param):
-        global conversation_id
-        conversation_id = generate_conversation_id()
         return []
 
     input_text.submit(chat, [input_text, chatbot], chatbot, api_name="chat")

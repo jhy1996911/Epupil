@@ -16,42 +16,42 @@ headers = {
 }
 
 data = {
-    # "conversation_id": "123",
-    "bot_id": "7410398538913841190",
-    "user_id": "111",
+    "bot_id": "7410386311095779365",
+    "user_id": "1112",
     "stream": True,
-    "auto_save_history": True
+    "auto_save_history": False
 }
 
 
-def chat(query, history, conversation_id):
-    # chat_history = []
-    # for hist_item in history:
-    #     chat_history.append({'role': 'user', 'type': 'query', 'content': hist_item[0], "content_type": "text"})
-    #     chat_history.append({'role': 'assistant', 'type': 'answer', 'content': hist_item[1], "content_type": "text"})
+def chat(query, history, token):
+    chat_history = []
+    for hist_item in history:
+        chat_history.append({'role': 'user', 'type': 'question', 'content': hist_item[0], "content_type": "text"})
+        chat_history.append({'role': 'assistant', 'type': 'answer', 'content': hist_item[1], "content_type": "text"})
 
-    print("用户说:", query, "conversation_id:", conversation_id)
-    data['additional_messages'] = [{"role": "user", "content": query, "content_type": "text"}]
+    del chat_history[-1]
+    del chat_history[-1]
+    chat_history.append({'role': 'user', 'content': query, 'type': 'question', "content_type": "text"})
+
+    print("用户说:", chat_history)
+    data['additional_messages'] = chat_history
+    data['user_id'] = token
     # data['additional_messages']=data['additional_messages'].encode('utf-8')
     # data['chat_history'] = chat_history
 
     data_json = json.dumps(data)
-    # data_json_code = data_json.encode('utf-8')
-    # headers_json = json.dumps(headers)
-    # headers_json = headers_json.encode('utf-8')
-    # print(data_json)
-    # print(headers)
+    print(data_json)
+
     response = requests.post(url, headers=headers, data=data_json)
 
     conti = False
     for line in response.iter_lines():
-        # print(line)
         if line:
+            decoded_line = line.decode('utf-8')
+            print(decoded_line)
             if conti:
                 conti = False
                 continue
-            decoded_line = line.decode('utf-8')
-            print(decoded_line)
             event = extract_event_type(decoded_line)
             if event is not None and event == "[DONE]":
                 break
@@ -63,6 +63,7 @@ def chat(query, history, conversation_id):
             if event is None:
                 json_data = json.loads(decoded_line.split("data:")[-1])
                 if 'type' in json_data and json_data['type'] == 'answer':
+                    conversation_id = json_data['conversation_id']
                     yield json_data['content']
 
 
