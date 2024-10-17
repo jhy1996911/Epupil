@@ -4,7 +4,11 @@ import os
 import random
 import string
 
+from Database import Database
+
 os.environ['CURL_CA_BUNDLE'] = ''
+
+db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!', db='esopAI')
 
 
 def generate_conversation_id():
@@ -14,14 +18,21 @@ def generate_conversation_id():
 def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
     # 获取 URL 参数
     params = request.query_params
-    param_value = params.get("token")
+    param_value = params.get("user_id")
     yield prj_chatbot
 
-    system_message = f"鉴权信息是{param_value}\n\n"
+    # system_message = f"鉴权信息是{param_value}\n\n"
     # prj_chatbot.append((None, system_message))
 
-    coze_response = coze.chat(system_message + user_in_text, prj_chatbot,param_value)
+    coze_response = coze.chat(user_in_text, prj_chatbot,param_value)
     # coze_response = coze.chat(user_in_text, prj_chatbot, param_value)
+
+    data = {}
+    data['role'] = "user"
+    data['content'] = user_in_text
+    if param_value is not None:
+        data['user_id'] = param_value
+    db.insert('user_chat_log', data)
 
     prj_chatbot.append([user_in_text, ''])
     yield prj_chatbot
@@ -29,6 +40,10 @@ def chat(user_in_text: str, prj_chatbot: list, request: gr.Request):
     for chunk_content in coze_response:
         prj_chatbot[-1][1] = f'{prj_chatbot[-1][1]}{chunk_content}'
         yield prj_chatbot
+    data['role'] = "ai"
+    data['content'] = prj_chatbot[-1][1]
+    print(data)
+    db.insert('user_chat_log', data)
 
 
 web_title = 'Best Assistant'
