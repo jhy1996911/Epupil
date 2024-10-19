@@ -1,4 +1,6 @@
 import gradio as gr
+
+import ChatTimer
 import coze
 import os
 import random
@@ -13,6 +15,19 @@ os.environ['CURL_CA_BUNDLE'] = ''
 
 db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!', db='esopAI')
 
+USER_ID = "user_id"
+
+class BotState:
+    _id = 1
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+    def update_user_id(self, user_id):
+        self.user_id = user_id
+
+    def get_user_id(self):
+        return user_id
+
 
 # 生成唯一的会话 ID
 def generate_conversation_id():
@@ -24,35 +39,26 @@ user_conversation = {}
 
 
 # 用户聊天处理逻辑
-async def chat(user_in_text: str, prj_chatbot: list, user_id: str):
-    userid1 = gr.State()
+async def chat(user_in_text: str, prj_chatbot: list,user_id_status:dict):
     # 检查前端是否传递了有效的用户会话ID
-    print("user_id=", user_id)
-    print("user_id1=", str(userid1))
-    if user_id is None:
-        user_id = generate_conversation_id()
-    user_conversation[user_id] = {"timer": None, "last_active": time.time()}  # 初始化定时器和活动时间
+    print("user_id=", user_id_status[USER_ID])
+    user_conversation[user_id_status[USER_ID]] = {"timer": None, "last_active": time.time()}  # 初始化定时器和活动时间
 
     # 更新最后活动时间
     # user_conversation[user_id]["last_active"] = time.time()
 
     # 启动定时器检测
-    if user_conversation[user_id]["timer"] is None:
-        new_id = await asyncio.create_task(check_timeout(user_id, prj_chatbot))
-        if new_id:
-            print("user_id=", new_id)
-            user_id = new_id  # 更新新的会话ID
-            # yield prj_chatbot
+    if user_conversation[user_id_status[USER_ID]]["timer"] is None:
+        user_conversation[user_id_status[USER_ID]]["timer"] = asyncio.create_task(check_timeout(user_id_status, prj_chatbot))
     # 向用户展示消息
     yield prj_chatbot
-    print("user_id3=", user_id)
 
-    coze_response = coze.chat(user_in_text, prj_chatbot, user_id)
+    coze_response = coze.chat(user_in_text, prj_chatbot, user_id_status[USER_ID])
 
     data = {}
     data['role'] = "user"
     data['content'] = user_in_text
-    data['user_id'] = user_id
+    data['user_id'] = user_id_status[USER_ID]
     db.insert('user_chat_log', data)
 
     prj_chatbot.append([user_in_text, ''])
@@ -68,40 +74,32 @@ async def chat(user_in_text: str, prj_chatbot: list, user_id: str):
 
 
 # 检查是否超时
-async def check_timeout(user_id, prj_chatbot):
+async def check_timeout(user_id_status: dict, prj_chatbot):
     while True:
         await asyncio.sleep(5)  # 每5秒检查一次
 
-        last_active = user_conversation[user_id]["last_active"]
+        last_active = user_conversation[user_id_status[USER_ID]]["last_active"]
         current_time = time.time()
 
         if current_time - last_active > 20:  # 如果超过两分钟未活动
-            new_id = reset_conversation_id(user_id, prj_chatbot)  # 重置并生成新会话ID
-            print("会话超时，生成新会话ID:", new_id)
-            return new_id  # 返回新的会话ID，供前端更新
+            reset_conversation_id(user_id_status, prj_chatbot)  # 重置并生成新会话ID
+            print("会话超时，生成新会话ID")
+
 
 # 重置用户的会话ID，并给用户提示
-def reset_conversation_id(user_id, prj_chatbot):
+def reset_conversation_id(user_id_status:dict, prj_chatbot):
     data = {}
     data['status'] = 'finish'
     condition = {}
-    condition['user_id'] = user_id
+    condition['user_id'] = user_id_status[USER_ID]
     db.update('user_chat_log', data, condition)
 
     new_id = generate_conversation_id()  # 生成新的会话ID
-    print(f"用户 {user_id} 会话超时，生成新会话ID: {new_id}")
+    print(f"用户 {user_id_status[USER_ID]} 会话超时，生成新会话ID: {new_id}")
     user_conversation[new_id] = {"timer": None, "last_active": time.time()}  # 初始化新的会话ID
-
+    user_id_status[USER_ID] = new_id
     # 添加提示文案到 prj_chatbot
     # prj_chatbot.append(["系统提示", "您已经两分钟未回复，已生成新的会话ID，请继续提问。"])
-
-    update_user_id_state(new_id)
-    return new_id  # 返回新的会话ID，供前端更新
-
-
-# 在前端调用reset_conversation_id后，更新状态
-def update_user_id_state(new_id):
-    return gr.State(value=new_id)  # 更新前端状态为新的ID
 
 
 web_title = 'Best Assistant'
@@ -129,16 +127,19 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
         return []
 
 
-    id = generate_conversation_id()
-    update_user_id_state(id)
-    user_id = gr.State(value=id)
+    user_id = generate_conversation_id()
+    stat={}
+    user_id_state = gr.State({USER_ID: user_id})
+
+    t = threading.Timer(30, lambda: ChatTimer.process_summary_data(db))
+    t.start()
 
     # 修改此处，在前端传递用户ID
-    input_text.submit(chat, [input_text, chatbot, user_id], chatbot, api_name="chat")
+    input_text.submit(chat, [input_text, chatbot, user_id_state], chatbot, api_name="chat")
 
     input_text.submit(lambda x: '', input_text, input_text)
 
-    submit_btn.click(chat, [input_text, chatbot, user_id], chatbot, api_name="chat")
+    submit_btn.click(chat, [input_text, chatbot, user_id_state], chatbot, api_name="chat")
 
     submit_btn.click(lambda x: '', input_text, input_text)
 
@@ -146,4 +147,4 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     gr.HTML(footer_html)
 
 demo.title = web_title
-demo.queue(default_concurrency_limit=10).launch(share=False, server_name='0.0.0.0')
+demo.queue(default_concurrency_limit=10).launch(share=False, server_name='192.168.10.4')

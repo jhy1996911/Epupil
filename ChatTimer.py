@@ -1,10 +1,10 @@
-from Database import Database
+# from Database import Database
 import coze
 
 
 def process_summary_data(db):
     print("开始汇总数据...")
-    result = db.fetch_all("select distinct user_id from user_chat_log")
+    result = db.fetch_all("select distinct user_id from user_chat_log where status='finish'")
     user_ids = [item['user_id'] for item in result]
     for user_id in user_ids:
         result = db.fetch_all(
@@ -18,9 +18,14 @@ def process_summary_data(db):
         for chunk_content in coze_response:
             content_response = content_response + chunk_content
         print(content_response)
+        data = {}
+        data['status'] = 'Summarized'
+        condition = {}
+        condition['user_id'] = user_id
+        db.update('user_chat_log', data, condition)
     print("汇总数据完成，结果已保存。")
 
 
-if __name__ == '__main__':
-    db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!', db='esopAI')
-    process_summary_data(db)
+# if __name__ == '__main__':
+#     db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!', db='esopAI')
+#     process_summary_data(db)
