@@ -63,7 +63,6 @@ def chat(query, history,user_id):
             if event is None:
                 json_data = json.loads(decoded_line.split("data:")[-1])
                 if 'type' in json_data and json_data['type'] == 'answer':
-                    conversation_id = json_data['conversation_id']
                     yield json_data['content']
 
 
