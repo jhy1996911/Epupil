@@ -18,17 +18,6 @@ db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!'
 
 USER_ID = "user_id"
 
-class BotState:
-    _id = 1
-    def __init__(self, user_id):
-        self.user_id = user_id
-
-    def update_user_id(self, user_id):
-        self.user_id = user_id
-
-    def get_user_id(self):
-        return user_id
-
 
 # 生成唯一的会话 ID
 def generate_conversation_id():
@@ -40,30 +29,22 @@ user_conversation = {}
 
 
 # 用户聊天处理逻辑
-async def chat(user_in_text: str, prj_chatbot: list,user_id_status:dict):
-    # 向用户展示消息
-    yield prj_chatbot
+def chat(user_in_text: str, prj_chatbot: list, user_id_status: dict):
     # 检查前端是否传递了有效的用户会话ID
     print("user_id=", user_id_status[USER_ID])
     user_conversation[user_id_status[USER_ID]] = {"timer": None, "last_active": time.time()}  # 初始化定时器和活动时间
 
+    # 向用户展示消息
+    yield prj_chatbot
     # 更新最后活动时间
     # user_conversation[user_id]["last_active"] = time.time()
 
-    # 启动定时器检测
-    if user_conversation[user_id_status[USER_ID]]["timer"] is None:
-        user_conversation[user_id_status[USER_ID]]["timer"] = asyncio.create_task(check_timeout(user_id_status, prj_chatbot))
-
+    # # 启动定时器检测
+    # if user_conversation[user_id_status[USER_ID]]["timer"] is None:
+    #     user_conversation[user_id_status[USER_ID]]["timer"] = asyncio.create_task(
+    #         check_timeout(user_id_status, prj_chatbot))
 
     coze_response = coze.chat(user_in_text, prj_chatbot, user_id_status[USER_ID])
-
-    data = {}
-    data['role'] = "user"
-    data['content'] = user_in_text
-    data['user_id'] = user_id_status[USER_ID]
-    db.insert('user_chat_log', data)
-
-    addUserFeishuLog(prj_chatbot, user_id_status, user_in_text)
 
     prj_chatbot.append([user_in_text, ''])
     yield prj_chatbot
@@ -72,10 +53,17 @@ async def chat(user_in_text: str, prj_chatbot: list,user_id_status:dict):
         prj_chatbot[-1][1] = f'{prj_chatbot[-1][1]}{chunk_content}'
         yield prj_chatbot
 
-    data['role'] = "ai"
-    data['content'] = prj_chatbot[-1][1]
-    db.insert('user_chat_log', data)
-    addAiFeishuLog(prj_chatbot, user_id_status)
+    # data = {}
+    # data['role'] = "user"
+    # data['content'] = user_in_text
+    # data['user_id'] = user_id_status[USER_ID]
+    # db.insert('user_chat_log', data)
+    #
+    # data['role'] = "ai"
+    # data['content'] = prj_chatbot[-1][1]
+    # db.insert('user_chat_log', data)
+    # await addUserFeishuLog(prj_chatbot, user_id_status, user_in_text)
+    # await addAiFeishuLog(prj_chatbot, user_id_status)
 
 
 async def addAiFeishuLog(prj_chatbot, user_id_status):
@@ -110,7 +98,7 @@ async def check_timeout(user_id_status: dict, prj_chatbot):
 
 
 # 重置用户的会话ID，并给用户提示
-def reset_conversation_id(user_id_status:dict, prj_chatbot):
+def reset_conversation_id(user_id_status: dict, prj_chatbot):
     data = {}
     data['status'] = 'finish'
     condition = {}
@@ -153,7 +141,7 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
 
 
     user_id = generate_conversation_id()
-    stat={}
+    stat = {}
     user_id_state = gr.State({USER_ID: user_id})
 
     # 修改此处，在前端传递用户ID

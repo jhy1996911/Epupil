@@ -3,6 +3,7 @@ import json
 
 import requests
 import os
+from datetime import datetime
 
 os.environ['CURL_CA_BUNDLE'] = ''
 
@@ -42,7 +43,12 @@ def chat(query, history, user_id):
     data_json = json.dumps(data)
     print(data_json)
 
-    response = requests.post(url, headers=headers, data=data_json)
+    start = datetime.now()
+    print("start time {}", start)
+    response = requests.post(url, headers=headers, data=data_json,stream=True)
+    end = datetime.now()
+    print("end time {}", end)
+    print("during {}", end - start)
 
     conti = False
     for line in response.iter_lines():
