@@ -29,8 +29,8 @@ def get_access_token():
 
 
 # 新增记录到飞书表格
-def add_record(access_token, record_data):
-    url = f"{FEISHU_API_BASE_URL}/bitable/v1/apps/{SPREADSHEET_ID}/tables/{TABLE_ID}/records"
+def add_record(access_token, record_data, table_id=TABLE_ID):
+    url = f"{FEISHU_API_BASE_URL}/bitable/v1/apps/{SPREADSHEET_ID}/tables/{table_id}/records"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json; charset=utf-8"

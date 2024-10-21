@@ -103,7 +103,7 @@ async def check_timeout(user_id_status: dict, prj_chatbot):
         last_active = user_conversation[user_id_status[USER_ID]]["last_active"]
         current_time = time.time()
 
-        if current_time - last_active > 20:  # 如果超过两分钟未活动
+        if current_time - last_active > 120:  # 如果超过两分钟未活动
             reset_conversation_id(user_id_status, prj_chatbot)  # 重置并生成新会话ID
             print("会话超时，生成新会话ID")
 
@@ -120,6 +120,8 @@ def reset_conversation_id(user_id_status:dict, prj_chatbot):
     print(f"用户 {user_id_status[USER_ID]} 会话超时，生成新会话ID: {new_id}")
     user_conversation[new_id] = {"timer": None, "last_active": time.time()}  # 初始化新的会话ID
     user_id_status[USER_ID] = new_id
+
+    ChatTimer.process_summary_data(db)
     # 添加提示文案到 prj_chatbot
     # prj_chatbot.append(["系统提示", "您已经两分钟未回复，已生成新的会话ID，请继续提问。"])
 
@@ -152,9 +154,6 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     user_id = generate_conversation_id()
     stat={}
     user_id_state = gr.State({USER_ID: user_id})
-
-    t = threading.Timer(30, lambda: ChatTimer.process_summary_data(db))
-    t.start()
 
     # 修改此处，在前端传递用户ID
     input_text.submit(chat, [input_text, chatbot, user_id_state], chatbot, api_name="chat")
