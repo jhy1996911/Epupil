@@ -23,7 +23,7 @@ data = {
 }
 
 
-def chat(query, history,user_id):
+def chat(query, history, user_id):
     chat_history = []
     for hist_item in history:
         chat_history.append({'role': 'user', 'type': 'question', 'content': hist_item[0], "content_type": "text"})

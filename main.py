@@ -10,6 +10,7 @@ import time
 import threading
 
 from Database import Database
+from feishu import add_record, get_access_token
 
 os.environ['CURL_CA_BUNDLE'] = ''
 
@@ -61,6 +62,8 @@ async def chat(user_in_text: str, prj_chatbot: list,user_id_status:dict):
     data['user_id'] = user_id_status[USER_ID]
     db.insert('user_chat_log', data)
 
+    await addUserFeishuLog(prj_chatbot, user_id_status, user_in_text)
+
     prj_chatbot.append([user_in_text, ''])
     yield prj_chatbot
 
@@ -71,6 +74,25 @@ async def chat(user_in_text: str, prj_chatbot: list,user_id_status:dict):
     data['role'] = "ai"
     data['content'] = prj_chatbot[-1][1]
     db.insert('user_chat_log', data)
+    await addAiFeishuLog(prj_chatbot, user_id_status)
+
+
+async def addAiFeishuLog(prj_chatbot, user_id_status):
+    new_record = {}
+    new_record['对话标识'] = user_id_status[USER_ID]
+    new_record['角色'] = "ai"
+    new_record['内容'] = prj_chatbot[-1][1]
+    access_token = get_access_token()
+    add_record(access_token, new_record)
+
+
+async def addUserFeishuLog(prj_chatbot, user_id_status, user_in_text):
+    new_record = {}
+    new_record['对话标识'] = user_id_status[USER_ID]
+    new_record['角色'] = "user"
+    new_record['内容'] = user_in_text
+    access_token = get_access_token()
+    add_record(access_token, new_record)
 
 
 # 检查是否超时
@@ -147,4 +169,4 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     gr.HTML(footer_html)
 
 demo.title = web_title
-demo.queue(default_concurrency_limit=10).launch(share=False, server_name='192.168.10.4')
+demo.queue(default_concurrency_limit=10).launch(share=False, server_name='172.25.70.191')
