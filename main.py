@@ -67,7 +67,7 @@ def chat(user_in_text: str, prj_chatbot: list, user_id_status: dict):
     addAiFeishuLog(prj_chatbot, user_id_status)
 
 
-async def addAiFeishuLog(prj_chatbot, user_id_status):
+def addAiFeishuLog(prj_chatbot, user_id_status):
     new_record = {}
     new_record['对话标识'] = user_id_status[USER_ID]
     new_record['角色'] = "ai"
@@ -76,7 +76,7 @@ async def addAiFeishuLog(prj_chatbot, user_id_status):
     add_record(access_token, new_record)
 
 
-async def addUserFeishuLog(prj_chatbot, user_id_status, user_in_text):
+def addUserFeishuLog(prj_chatbot, user_id_status, user_in_text):
     new_record = {}
     new_record['对话标识'] = user_id_status[USER_ID]
     new_record['角色'] = "user"
