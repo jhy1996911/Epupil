@@ -17,7 +17,7 @@ headers = {
 }
 
 data = {
-    "bot_id": "7428189306491289663",
+    "bot_id": "7427057791657443378",
     "user_id": "1112",
     "stream": True,
     "auto_save_history": False
