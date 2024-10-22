@@ -30,27 +30,19 @@ user_conversation = {}
 
 # 用户聊天处理逻辑
 def chat(user_in_text: str, prj_chatbot: list, user_id_status: dict):
+    if user_id_status[USER_ID] is None:
+        user_id_status[USER_ID] = generate_conversation_id()
     # 检查前端是否传递了有效的用户会话ID
     print("user_id=", user_id_status[USER_ID])
-    # user_conversation[user_id_status[USER_ID]] = {"timer": None, "last_active": time.time()}  # 初始化定时器和活动时间
     # 向用户展示消息
     yield prj_chatbot
-
-    # # 启动定时器检测
-    # if user_conversation[user_id_status[USER_ID]]["timer"] is None:
-    #     user_conversation[user_id_status[USER_ID]]["timer"] = asyncio.create_task(
-    #         check_timeout(user_id_status, prj_chatbot))
-
-    # if param_value is None or param_value not in user_conversation:
-    #     param_value = generate_conversation_id()
-    #     user_conversation[param_value] = None  # 初始化定时器
-
 
     # 取消之前的定时器，重置为2分钟
     if user_id_status[USER_ID] in user_conversation:
         user_conversation[user_id_status[USER_ID]].cancel()
 
-    user_conversation[user_id_status[USER_ID]] = threading.Timer(60, reset_conversation_id, [user_id_status, prj_chatbot])
+    user_conversation[user_id_status[USER_ID]] = threading.Timer(60, reset_conversation_id,
+                                                                 [user_id_status, prj_chatbot])
     user_conversation[user_id_status[USER_ID]].start()
 
     coze_response = coze.chat(user_in_text, prj_chatbot, user_id_status[USER_ID])
@@ -93,19 +85,6 @@ async def addUserFeishuLog(prj_chatbot, user_id_status, user_in_text):
     add_record(access_token, new_record)
 
 
-# 检查是否超时
-# async def check_timeout(user_id_status: dict, prj_chatbot):
-#     while True:
-#         await asyncio.sleep(5)  # 每5秒检查一次
-#
-#         last_active = user_conversation[user_id_status[USER_ID]]["last_active"]
-#         current_time = time.time()
-#
-#         if current_time - last_active > 120:  # 如果超过两分钟未活动
-#             reset_conversation_id(user_id_status, prj_chatbot)  # 重置并生成新会话ID
-#             print("会话超时，生成新会话ID")
-
-
 # 重置用户的会话ID，并给用户提示
 def reset_conversation_id(user_id_status: dict, prj_chatbot):
     data = {}
@@ -113,6 +92,8 @@ def reset_conversation_id(user_id_status: dict, prj_chatbot):
     condition = {}
     condition['user_id'] = user_id_status[USER_ID]
     db.update('user_chat_log', data, condition)
+
+    gr.State().change()
 
     new_id = generate_conversation_id()  # 生成新的会话ID
     print(f"用户 {user_id_status[USER_ID]} 会话超时，生成新会话ID: {new_id}")
@@ -149,18 +130,16 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
         return []
 
 
-    user_id = generate_conversation_id()
-    stat = {}
-    user_id_state = gr.State({USER_ID: user_id})
-
     ChatTimer.process_summary_data(db)
 
+    user_id_status = gr.State({USER_ID: None})
+
     # 修改此处，在前端传递用户ID
-    input_text.submit(chat, [input_text, chatbot, user_id_state], chatbot, api_name="chat")
+    input_text.submit(chat, [input_text, chatbot, user_id_status], chatbot, api_name="chat")
 
     input_text.submit(lambda x: '', input_text, input_text)
 
-    submit_btn.click(chat, [input_text, chatbot, user_id_state], chatbot, api_name="chat")
+    submit_btn.click(chat, [input_text, chatbot, user_id_status], chatbot, api_name="chat")
 
     submit_btn.click(lambda x: '', input_text, input_text)
 
