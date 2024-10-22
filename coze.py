@@ -17,7 +17,7 @@ headers = {
 }
 
 data = {
-    "bot_id": "7427057791657443378",
+    "bot_id": "7428189306491289663",
     "user_id": "1112",
     "stream": True,
     "auto_save_history": False
@@ -35,7 +35,10 @@ def chat(query, history, user_id):
     chat_history.append({'role': 'user', 'content': query, 'type': 'question', "content_type": "text"})
 
     print("用户说:", chat_history)
-    data['additional_messages'] = chat_history
+    if len(chat_history)>10:
+        data['additional_messages'] = chat_history[-10:]
+    else:
+        data['additional_messages'] = chat_history
     data['user_id'] = user_id
     # data['additional_messages']=data['additional_messages'].encode('utf-8')
     # data['chat_history'] = chat_history
