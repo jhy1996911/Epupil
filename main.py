@@ -38,8 +38,11 @@ def chat(user_in_text: str, prj_chatbot: list, user_id_status: dict):
     yield prj_chatbot
 
     # 取消之前的定时器，重置为2分钟
-    if user_id_status[USER_ID] in user_conversation and user_conversation[user_id_status[USER_ID]] is not None:
-        user_conversation[user_id_status[USER_ID]].cancel()
+    if user_id_status[USER_ID] in user_conversation:
+        timer = user_conversation[user_id_status[USER_ID]]
+        # 检查是否为 threading.Timer 实例
+        if isinstance(timer, threading.Timer):
+            timer.cancel()
 
     user_conversation[user_id_status[USER_ID]] = threading.Timer(60, reset_conversation_id,
                                                                  [user_id_status, prj_chatbot])

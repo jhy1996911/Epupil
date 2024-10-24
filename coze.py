@@ -35,7 +35,7 @@ def chat(query, history, user_id):
     chat_history.append({'role': 'user', 'content': query, 'type': 'question', "content_type": "text"})
 
     print("用户说:", chat_history)
-    if len(chat_history)>10:
+    if len(chat_history) > 10:
         data['additional_messages'] = chat_history[-10:]
     else:
         data['additional_messages'] = chat_history
@@ -46,7 +46,7 @@ def chat(query, history, user_id):
     data_json = json.dumps(data)
     print(data_json)
 
-    response = requests.post(url, headers=headers, data=data_json,stream=True)
+    response = requests.post(url, headers=headers, data=data_json, stream=True)
 
     conti = False
     for line in response.iter_lines():

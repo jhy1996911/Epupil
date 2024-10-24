@@ -12,7 +12,8 @@ def process_summary_data(db):
     user_ids = [item['user_id'] for item in result]
     for user_id in user_ids:
         result = db.fetch_all(
-            "select content from user_chat_log where role='user' and user_id=" + user_id + " order by id desc")
+            "select content from user_chat_log where role='user' and user_id=" + user_id + " order by id asc")
+            # "select content from user_chat_log where user_id=" + user_id + " order by id asc")
         user_contents = [item['content'] for item in result]
         content = "从" + str(user_contents) + (
             "中总结用户的对话，返回信息格式为json格式，如 {\"姓名\":,\"联系方式\":,\"所在公司\":,\"用户诉求\":}")
