@@ -150,4 +150,4 @@ with gr.Blocks(theme=gr.themes.Soft(), analytics_enabled=False) as demo:
     gr.HTML(footer_html)
 
 demo.title = web_title
-demo.queue(default_concurrency_limit=10).launch(share=False, server_name='0.0.0.0')
+demo.queue(default_concurrency_limit=10).launch(share=True, server_name='0.0.0.0')
