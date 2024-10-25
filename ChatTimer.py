@@ -25,7 +25,6 @@ def process_summary_data(db):
             content_response = content_response + chunk_content
         # print(content_response)
 
-
         # pattern = r"姓名:(\S+) 联系方式:(\d+) 所在公司:(\S+) 用户诉求:(.+)"
         # match = re.search(pattern, content_response)
 
@@ -64,8 +63,7 @@ def process_summary_data(db):
         condition['user_id'] = user_id
         db.update('user_chat_log', data, condition)
 
-
-print("汇总数据完成，结果已保存。")
+    print("汇总数据完成，结果已保存。")
 
 # if __name__ == '__main__':
 #     db = Database(host='123.60.85.50', port=3356, user='root', password='Asdqwe123!', db='esopAI')
